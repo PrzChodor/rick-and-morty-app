@@ -69,19 +69,18 @@ struct CharacterList {
                 return .none
                 
             case let .characterSelected(character):
-                state.characterDetails = CharacterDetails.State(character: character)
+                let isFavorite = state.favoriteCharacters.contains(character.id)
+                state.characterDetails = CharacterDetails.State(character: character, isFavorite: isFavorite)
                 return .none
                 
-            case .characterDetails:
+            case .characterDetails(.presented(.favoriteButtonTapped)):
+                guard let detailsState = state.characterDetails
+                  else { return .none }
+                toggleFavorite(state: &state, id: detailsState.character.id)
                 return .none
                 
             case let .favoritesButtonTapped(id):
-                if state.favoriteCharacters.contains(id) {
-                    state.favoriteCharacters.removeAll { $0 == id }
-                } else {
-                    state.favoriteCharacters.append(id)
-                }
-                defaults.set(state.favoriteCharacters, forKey: "favorites")
+                toggleFavorite(state: &state, id: id)
                 return .none
                 
             case .viewAppeared:
@@ -101,6 +100,9 @@ struct CharacterList {
                 return .none
                 
             case .alert:
+                return .none
+                
+            case .characterDetails:
                 return .none
             }
         }
@@ -122,5 +124,14 @@ struct CharacterList {
             }
         }
         .cancellable(id: CancelID.characterListRequest)
+    }
+    
+    func toggleFavorite(state: inout State, id: Character.ID) {
+        if state.favoriteCharacters.contains(id) {
+            state.favoriteCharacters.removeAll { $0 == id }
+        } else {
+            state.favoriteCharacters.append(id)
+        }
+        defaults.set(state.favoriteCharacters, forKey: "favorites")
     }
 }

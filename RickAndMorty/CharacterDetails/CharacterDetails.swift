@@ -15,12 +15,13 @@ struct CharacterDetails {
     struct State {
         @Presents var episodeDetails: EpisodeDetails.State?
         var character: Character
+        var isFavorite: Bool
     }
 
     enum Action {
         case episodeDetails(PresentationAction<EpisodeDetails.Action>)
         case episodeSelected(String)
-        case closeButtonTapped
+        case favoriteButtonTapped
     }
     
     @Dependency(\.dismiss) var dismiss
@@ -35,8 +36,9 @@ struct CharacterDetails {
             case .episodeDetails:
                 return .none
                 
-            case .closeButtonTapped:
-                return .run { _ in await self.dismiss() }
+            case .favoriteButtonTapped:
+                state.isFavorite.toggle()
+                return .none
             }
         }
         .ifLet(\.$episodeDetails, action: \.episodeDetails) {

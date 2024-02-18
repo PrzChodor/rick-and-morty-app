@@ -13,64 +13,61 @@ struct CharacterDetailsView: View {
     
     var body: some View {
         WithPerceptionTracking {
-            NavigationView {
-                Form {
-                    let character = store.character
-                    Section {
-                        VStack {
-                            AsyncImage(url: URL(string: character.image)) { image in
-                                image.resizable()
-                                    .clipShape(.circle)
-                            } placeholder: {
-                                ProgressView()
-                            }
-                            .frame(width: 200, height: 200)
-                            .padding()
-                            
-                            Text(character.name)
-                                .font(.title)
-                                .padding(.bottom)
-                            StatsRow(name: "Status", value: character.status, maxNameWidth: 100)
-                            StatsRow(name: "Gender", value: character.gender, maxNameWidth: 100)
-                            StatsRow(name: "Origin", value: character.origin.name, maxNameWidth: 100)
-                            StatsRow(name: "Location", value: character.location.name, maxNameWidth: 100)
-                                .padding(.bottom)
+            Form {
+                let character = store.character
+                Section("Character details") {
+                    VStack {
+                        AsyncImage(url: URL(string: character.image)) { image in
+                            image.resizable()
+                        } placeholder: {
+                            ProgressView()
                         }
+                        .frame(width: 200, height: 200)
+                        .clipShape(.circle)
+                        .padding()
                         
+                        Text(character.name)
+                            .font(.title)
+                            .padding(.bottom)
+                        StatsRow(name: "Status", value: character.status, maxNameWidth: 100)
+                        StatsRow(name: "Gender", value: character.gender, maxNameWidth: 100)
+                        StatsRow(name: "Origin", value: character.origin.name, maxNameWidth: 100)
+                        StatsRow(name: "Location", value: character.location.name, maxNameWidth: 100)
+                            .padding(.bottom)
                     }
-                    Section("Featured in episodes") {
-                        ForEach(character.episode, id: \.self) { episodeUrl in
-                            let episodeNumber = episodeUrl.filter("0123456789".contains)
-                            Button {
-                                store.send(.episodeSelected(episodeUrl))
-                            } label: {
-                                Text("Episode \(episodeNumber)")
-                            }
-                        }
-                    }
-                }
-                .navigationTitle("Character details")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem {
+                    .overlay(alignment: .topTrailing) {
                         Button {
-                            store.send(.closeButtonTapped)
+                            store.send(.favoriteButtonTapped)
                         } label: {
-                            Image(systemName: "xmark.circle.fill")
+                            Image(systemName: store.isFavorite ? "heart.fill" : "heart")
+                                .imageScale(.large)
+                                .foregroundColor(.red)
                         }
+                        .padding(8.0)
                     }
                 }
-                .sheet(item: $store.scope(state: \.episodeDetails, action: \.episodeDetails)) { store in
-                    EpisodeDetailsView(store: store)
+                Section("Featured in episodes") {
+                    ForEach(character.episode, id: \.self) { episodeUrl in
+                        let episodeNumber = episodeUrl.filter("0123456789".contains)
+                        Button {
+                            store.send(.episodeSelected(episodeUrl))
+                        } label: {
+                            Text("Episode \(episodeNumber)")
+                        }
+                    }
                 }
             }
-            .navigationViewStyle(StackNavigationViewStyle())
+            .sheet(item: $store.scope(state: \.episodeDetails, action: \.episodeDetails)) { store in
+                EpisodeDetailsView(store: store)
+            }
         }
+        .navigationBarTitleDisplayMode(.inline)
+        .headerProminence(.increased)
     }
 }
 
 #Preview {
-    CharacterDetailsView(store: Store(initialState: CharacterDetails.State(character: .mock), reducer: {
+    CharacterDetailsView(store: Store(initialState: CharacterDetails.State(character: .mock, isFavorite: false), reducer: {
         CharacterDetails()
     }))
 }

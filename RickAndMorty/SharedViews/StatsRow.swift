@@ -20,11 +20,11 @@ struct StatsRow: View {
                 .background(.primary.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             
-                Text(value)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(10)
-                    .background(.primary.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            Text(value)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(10)
+                .background(.primary.opacity(0.05))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .fixedSize(horizontal: false, vertical: true)
     }

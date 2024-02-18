@@ -14,91 +14,74 @@ struct CharacterListView: View {
     var body: some View {
         WithPerceptionTracking {
             NavigationView {
-                if !store.characters.isEmpty {
-                    List {
-                        ForEach(store.characters, id: \.id) { character in
-                            WithPerceptionTracking {
-                                HStack {
-                                    AsyncImage(url: URL(string: character.image)) { image in
-                                        image.resizable()
-                                            .clipShape(.circle)
-                                    } placeholder: {
-                                        ProgressView()
-                                    }
-                                    .frame(width: 64, height: 64)
-                                    
+                VStack {
+                    if !store.characters.isEmpty {
+                        List {
+                            ForEach(store.characters, id: \.id) { character in
+                                WithPerceptionTracking {
+                                    CharacterListTileView(
+                                        character: character,
+                                        isFavorite: store.favoriteCharacters.contains(character.id),
+                                        onTileTap: { store.send(.characterSelected(character)) },
+                                        onToggleFavorite: { store.send(.favoritesButtonTapped(character.id)) }
+                                    )
+                                }
+                            }
+                            
+                            if store.nextPageUrl != nil {
+                                if store.hasErrorOccured {
                                     Button {
-                                        store.send(.characterSelected(character))
+                                        store.send(.loadMoreButtonTapped)
                                     } label: {
-                                        Text(character.name)
+                                        Text("Load more")
+                                            .frame(maxWidth: .infinity)
                                     }
-                                    .padding()
-                                    
-                                    Spacer()
-                                    
-                                    Button {
-                                        store.send(.favoritesButtonTapped(character.id))
-                                    } label: {
-                                        if store.favoriteCharacters.contains(character.id) {
-                                            Image(systemName: "heart.fill")
-                                        } else {
-                                            Image(systemName: "heart")
+                                } else {
+                                    ProgressView().id(UUID())
+                                        .onAppear {
+                                            if !store.isLoading {
+                                                store.send(.endOfPageReached)
+                                            }
                                         }
-                                    }
-                                    .buttonStyle(.borderless)
                                 }
                             }
                         }
-                        if store.nextPageUrl != nil {
-                            if store.hasErrorOccured {
+                        .navigationTitle("Characters")
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
                                 Button {
-                                    store.send(.loadMoreButtonTapped)
+                                    store.send(.clearButtonTapped)
                                 } label: {
-                                    Text("Load more")
-                                        .frame(maxWidth: .infinity)
+                                    Text("Clear")
                                 }
-                            } else {
-                                ProgressView().id(UUID())
-                                    .onAppear {
-                                        if !store.isLoading {
-                                            store.send(.endOfPageReached)
-                                        }
-                                    }
                             }
                         }
-                    }
-                    .navigationTitle("Characters")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                store.send(.clearButtonTapped)
-                            } label: {
-                                Text("Clear")
-                            }
+                    } else if !store.isLoading {
+                        VStack(alignment: .center) {
+                            Text("Press the button below to load character list")
+                                .multilineTextAlignment(.center)
+                                .padding()
+                            Button("Load characters") {
+                                store.send(.loadButtonTapped)
+                            }.buttonStyle(.borderedProminent)
                         }
+                    } else {
+                        ProgressView()
                     }
-                } else if !store.isLoading {
-                    VStack(alignment: .center) {
-                        Text("Press the button below to load character list")
-                            .multilineTextAlignment(.center)
-                            .padding()
-                        Button("Load characters") {
-                            store.send(.loadButtonTapped)
-                        }.buttonStyle(.borderedProminent)
+                    
+                    NavigationLink(item: $store.scope(state: \.characterDetails, action: \.characterDetails)) { store in
+                        CharacterDetailsView(store: store)
+                    } label: {
+                        EmptyView()
                     }
-                } else {
-                    ProgressView()
+                }
+                .alert($store.scope(state: \.alert, action: \.alert))
+                .onAppear {
+                    store.send(.viewAppeared)
                 }
             }
-            .alert($store.scope(state: \.alert, action: \.alert))
-            .sheet(item: $store.scope(state: \.characterDetails, action: \.characterDetails)) { store in
-                CharacterDetailsView(store: store)
-            }
-            .onAppear {
-                store.send(.viewAppeared)
-            }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .navigationViewStyle(.stack)
     }
 }
 

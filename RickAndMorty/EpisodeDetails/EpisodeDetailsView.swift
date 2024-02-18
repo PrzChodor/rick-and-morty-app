@@ -53,7 +53,7 @@ struct EpisodeDetailsView: View {
                     }
                 }
             }
-            .navigationViewStyle(StackNavigationViewStyle())
+            .navigationViewStyle(.stack)
         }
     }
 }
