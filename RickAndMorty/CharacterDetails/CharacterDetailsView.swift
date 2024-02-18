@@ -40,9 +40,10 @@ struct CharacterDetailsView: View {
                             store.send(.favoriteButtonTapped)
                         } label: {
                             Image(systemName: store.isFavorite ? "heart.fill" : "heart")
-                                .imageScale(.large)
-                                .foregroundColor(.red)
                         }
+                        .imageScale(.large)
+                        .buttonStyle(.borderless)
+                        .foregroundColor(.red)
                         .padding(8.0)
                     }
                 }

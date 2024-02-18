@@ -36,8 +36,8 @@ struct CharacterListTileView: View {
                 onToggleFavorite()
             } label: {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
-                    .imageScale(.large)
             }
+            .imageScale(.large)
             .foregroundColor(.red)
             .buttonStyle(.borderless)
             
